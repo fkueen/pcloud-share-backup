@@ -34,10 +34,10 @@ namespace PCloud.Backup
         }
 
         var randomName = Path.GetRandomFileName();
-        var backupFilename = $"{_config.Value.BackupLabel}-{DateTime.Now:yyyyMMddHHmmss}.zip";
+        var backupFilename = $"{_config.Value.SenderName}-{DateTime.Now:yyyyMMddHHmmss}.zip";
         ZipFile.CreateFromDirectory(_config.Value.BackupFolder, backupFilename, CompressionLevel.Optimal, true);
 
-        await _api.UploadToLinkAsync(backupFilename, _config.Value.PCloudCode, _config.Value.BackupLabel);
+        await _api.UploadToLinkAsync(backupFilename, _config.Value.PCloudCode, _config.Value.SenderName);
         File.Delete(backupFilename);
 
         _logger.LogInformation($"Done {backupFilename}");
