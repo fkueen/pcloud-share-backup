@@ -12,10 +12,10 @@ namespace PCloud.Backup
   public class BackupService : BackgroundService
   {
     private readonly ILogger _logger;
-    private readonly IOptions<BackupConfig> _config;
+    private readonly BackupConfig _config;
     private readonly ISchedulerFactory _schedulerFactory;
 
-    public BackupService(ILogger<BackupService> logger, IOptions<BackupConfig> config, ISchedulerFactory schedulerFactory)
+    public BackupService(ILogger<BackupService> logger, BackupConfig config, ISchedulerFactory schedulerFactory)
     {
       _logger = logger;
       _config = config;
@@ -26,14 +26,16 @@ namespace PCloud.Backup
     {
       try
       {
-        _logger.LogInformation($"Starting up with cron expression {_config.Value.BackupCronExpression}...");
+        _logger.LogInformation($"Starting up with cron expression {_config.BackupCronExpression}...");
 
         var scheduler = await _schedulerFactory.GetScheduler(stoppingToken);
         await scheduler.Start(stoppingToken);
 
         await scheduler.ScheduleJob(
           JobBuilder.Create<BackupJob>().Build(),
-          TriggerBuilder.Create().WithCronSchedule(_config.Value.BackupCronExpression).StartNow().Build(),
+          TriggerBuilder.Create()
+          .WithCronSchedule(_config.BackupCronExpression)
+          .StartNow().Build(),
           stoppingToken);
       }
       catch (Exception e)

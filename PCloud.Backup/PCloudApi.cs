@@ -12,15 +12,15 @@ namespace PCloud.Backup
   public class PCloudApi
   {
     private readonly ILogger _logger;
-    private readonly IOptions<BackupConfig> _config;
+    private readonly BackupConfig _config;
 
-    public PCloudApi(ILogger<PCloudApi> logger, IOptions<BackupConfig> config)
+    public PCloudApi(ILogger<PCloudApi> logger, BackupConfig config)
     {
       _logger = logger;
       _config = config;
     }
 
-    public async Task<PCloudResponse> UploadToLinkAsync(string fileName, string code, string names)
+    public async Task<PCloudResponse> UploadToLinkAsync(string fileName)
     {
       using (var file = File.OpenRead(fileName))
       {
@@ -35,7 +35,7 @@ namespace PCloud.Backup
         content.Add(fileContent);
 
         return await new Url($"https://api.pcloud.com/uploadtolink")
-          .SetQueryParams(new { code = code, names = names })
+          .SetQueryParams(new { code = _config.PCloudCode, names = _config.SenderName })
           .PostAsync(content)
           .ReceiveJson<PCloudResponse>();
       }

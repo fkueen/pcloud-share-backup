@@ -3,9 +3,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Quartz;
-using System.IO.Compression;
 
 namespace PCloud.Backup
 {
@@ -13,31 +11,33 @@ namespace PCloud.Backup
   public class BackupJob : IJob
   {
     private readonly ILogger _logger;
-    private readonly IOptions<BackupConfig> _config;
+    private readonly BackupConfig _config;
     private readonly PCloudApi _api;
+    private readonly ZipService _zip;
 
-    public BackupJob(ILogger<BackupJob> logger, IOptions<BackupConfig> config, PCloudApi api)
+    public BackupJob(ILogger<BackupJob> logger, BackupConfig config, PCloudApi api, ZipService zip)
     {
       _logger = logger;
       _config = config;
       _api = api;
+      _zip = zip;
     }
 
     public async Task Execute(IJobExecutionContext context)
     {
       try
       {
-        if (!Directory.Exists(_config.Value.BackupFolder) || !Directory.EnumerateFileSystemEntries(_config.Value.BackupFolder).Any())
+        if (!Directory.Exists(_config.BackupFolder)
+        || !Directory.EnumerateFileSystemEntries(_config.BackupFolder, _config.BackupPattern).Any())
         {
           _logger.LogInformation($"Data directory doesn't exist or empty. Skipping...");
           return;
         }
 
-        var randomName = Path.GetRandomFileName();
-        var backupFilename = $"{_config.Value.SenderName}-{DateTime.Now:yyyyMMddHHmmss}.zip";
-        ZipFile.CreateFromDirectory(_config.Value.BackupFolder, backupFilename, CompressionLevel.Optimal, true);
+        var backupFilename = $"{_config.SenderName}-{DateTime.Now:yyyyMMddHHmmss}.zip";
 
-        await _api.UploadToLinkAsync(backupFilename, _config.Value.PCloudCode, _config.Value.SenderName);
+        await _zip.ExecuteAsync(backupFilename, context.CancellationToken);
+        await _api.UploadToLinkAsync(backupFilename);
         File.Delete(backupFilename);
 
         _logger.LogInformation($"Done {backupFilename}");

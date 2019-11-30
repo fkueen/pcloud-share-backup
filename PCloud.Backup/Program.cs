@@ -25,11 +25,11 @@ namespace PCloud.Backup
         {
           services
             .Configure<ConsoleLifetimeOptions>(o => o.SuppressStatusMessages = true)
-            .Configure<BackupConfig>(hostContext.Configuration)
-            .AddOptions()
             .AddLogging()
             .AddQuartz()
             .AddSingleton<PCloudApi>()
+            .AddSingleton<ZipService>()
+            .AddSingleton<BackupConfig>(hostContext.Configuration.Get<BackupConfig>())
             .AddTransient<BackupJob>()
             .AddHostedService<BackupService>();
         })
