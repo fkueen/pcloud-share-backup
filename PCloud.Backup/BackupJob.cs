@@ -36,7 +36,9 @@ namespace PCloud.Backup
 
         var backupFilename = $"{_config.SenderName}-{DateTime.Now:yyyyMMddHHmmss}.zip";
 
+        _logger.LogInformation($"Compressing {backupFilename}...");
         await _zip.ExecuteAsync(backupFilename, context.CancellationToken);
+        _logger.LogInformation($"Uploading {backupFilename}...");
         await _api.UploadToLinkAsync(backupFilename);
         File.Delete(backupFilename);
 

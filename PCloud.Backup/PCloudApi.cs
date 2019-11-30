@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Threading.Tasks;
 using System.IO;
@@ -36,6 +37,7 @@ namespace PCloud.Backup
 
         return await new Url($"https://api.pcloud.com/uploadtolink")
           .SetQueryParams(new { code = _config.PCloudCode, names = _config.SenderName })
+          .WithTimeout(TimeSpan.FromMinutes(5))
           .PostAsync(content)
           .ReceiveJson<PCloudResponse>();
       }
