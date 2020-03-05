@@ -4,11 +4,9 @@
   {
     public string PCloudCode { get; set; }
     public string BackupFolder { get; set; } = "data";
-    public string BackupPattern { get; set; } = "*.*";
+    public string BackupPattern { get; set; } = "*";
     public string SenderName { get; set; } = "docker";
     public string BackupCronExpression { get; set; } = "0 0 0 * * ?";
-    public int ZipLevel { get; set; } = 5;
-    public int ZipBufferSize { get; set; } = 1048576;
   }
 }
 

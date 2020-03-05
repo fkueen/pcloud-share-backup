@@ -27,22 +27,30 @@ namespace PCloud.Backup
     {
       try
       {
-        if (!Directory.Exists(_config.BackupFolder)
-        || !Directory.EnumerateFileSystemEntries(_config.BackupFolder, _config.BackupPattern).Any())
+        foreach (var backupFolder in _config.BackupFolder.Split(";", StringSplitOptions.RemoveEmptyEntries))
         {
-          _logger.LogInformation($"Data directory doesn't exist or empty. Skipping...");
-          return;
+          if (!Directory.Exists(backupFolder))
+          {
+            _logger.LogInformation($"Data directory '{backupFolder}' doesn't exist or empty. Skipping...");
+            return;
+          }
+
+          if (!Directory.EnumerateFileSystemEntries(backupFolder, _config.BackupPattern, SearchOption.AllDirectories).Any())
+          {
+            _logger.LogInformation($"Unable to find '{_config.BackupPattern}'. Skipping...");
+            continue;
+          }
+
+          var backupFilename = $"{_config.SenderName}.{Path.GetFileName(backupFolder)}.{DateTime.Now:yyyyMMddHHmmss}.tar.gz";
+
+          _logger.LogInformation($"Compressing {backupFilename}...");
+          await _zip.ExecuteAsync(backupFilename, backupFolder, _config.BackupPattern, context.CancellationToken);
+          _logger.LogInformation($"Uploading {backupFilename}...");
+          await _api.UploadToLinkAsync(backupFilename);
+          File.Delete(backupFilename);
+
+          _logger.LogInformation($"Done {backupFilename}");
         }
-
-        var backupFilename = $"{_config.SenderName}-{DateTime.Now:yyyyMMddHHmmss}.zip";
-
-        _logger.LogInformation($"Compressing {backupFilename}...");
-        await _zip.ExecuteAsync(backupFilename, context.CancellationToken);
-        _logger.LogInformation($"Uploading {backupFilename}...");
-        await _api.UploadToLinkAsync(backupFilename);
-        File.Delete(backupFilename);
-
-        _logger.LogInformation($"Done {backupFilename}");
       }
       catch (Exception e)
       {

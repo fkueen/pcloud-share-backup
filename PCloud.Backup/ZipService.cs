@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using ICSharpCode.SharpZipLib.Core;
-using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.Extensions.Logging;
+using SharpCompress.Common;
+using SharpCompress.Writers;
 
 namespace PCloud.Backup
 {
@@ -18,35 +18,14 @@ namespace PCloud.Backup
       _config = config;
     }
 
-    public async Task ExecuteAsync(string filename, CancellationToken stoppingToken = default(CancellationToken))
+    public async Task ExecuteAsync(string backupFilename, string backupFolder, string backupPattern, CancellationToken stoppingToken = default(CancellationToken))
     {
       await Task.CompletedTask;
 
-      using (FileStream zipFileStream = File.Create(filename))
-      using (var zipStream = new ZipOutputStream(zipFileStream))
+      using (Stream stream = File.OpenWrite(backupFilename))
+      using (var writer = WriterFactory.Open(stream, ArchiveType.Tar, new WriterOptions(CompressionType.GZip)))
       {
-        zipStream.SetLevel(_config.ZipLevel);
-
-        var files = Directory.GetFiles(_config.BackupFolder, _config.BackupPattern);
-
-        foreach (var file in files)
-        {
-          var fileInfo = new FileInfo(file);
-          var entryName = file;
-
-          entryName = ZipEntry.CleanName(entryName);
-          var newEntry = new ZipEntry(entryName);
-          newEntry.DateTime = fileInfo.LastWriteTime;
-          newEntry.Size = fileInfo.Length;
-          zipStream.PutNextEntry(newEntry);
-
-          var buffer = new byte[_config.ZipBufferSize];
-          using (FileStream fileStream = File.OpenRead(file))
-          {
-            StreamUtils.Copy(fileStream, zipStream, buffer);
-          }
-          zipStream.CloseEntry();
-        }
+        writer.WriteAll(backupFolder, backupPattern, SearchOption.AllDirectories);
       }
     }
   }
