@@ -32,7 +32,7 @@ namespace PCloud.Backup
           if (!Directory.Exists(backupFolder))
           {
             _logger.LogInformation($"Data directory '{backupFolder}' doesn't exist or empty. Skipping...");
-            return;
+            continue;
           }
 
           if (!Directory.EnumerateFileSystemEntries(backupFolder, _config.BackupPattern, SearchOption.AllDirectories).Any())
