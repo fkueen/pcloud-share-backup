@@ -8,6 +8,7 @@
     public string SenderName { get; set; } = "docker";
     public string BackupCronExpression { get; set; } = "0 0 0 * * ?";
     public bool BackupCompression { get; set; } = true;
+    public int StreamContentBufferSize { get; set; } = 5242880;
   }
 }
 

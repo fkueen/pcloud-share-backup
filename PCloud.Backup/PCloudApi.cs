@@ -27,7 +27,7 @@ namespace PCloud.Backup
       {
         var content = new MultipartFormDataContent();
 
-        var fileContent = new StreamContent(file);
+        var fileContent = new StreamContent(file, _config.StreamContentBufferSize);
         fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
         {
           Name = "\"file\"",
