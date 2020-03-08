@@ -37,7 +37,7 @@ namespace PCloud.Backup
 
         return await new Url($"https://api.pcloud.com/uploadtolink")
           .SetQueryParams(new { code = _config.PCloudCode, names = _config.SenderName })
-          .WithTimeout(TimeSpan.FromMinutes(5))
+          .WithTimeout(TimeSpan.FromMinutes(10))
           .PostAsync(content)
           .ReceiveJson<PCloudResponse>();
       }

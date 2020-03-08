@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -18,15 +19,19 @@ namespace PCloud.Backup
       _config = config;
     }
 
-    public async Task ExecuteAsync(string backupFilename, string backupFolder, string backupPattern, CancellationToken stoppingToken = default(CancellationToken))
+    public string Execute(string backupFolder, string backupPattern)
     {
-      await Task.CompletedTask;
+      var backupFilename = $"{_config.SenderName}-{Path.GetFileName(backupFolder)}-{DateTime.Now:yyyyMMdd}-{DateTime.Now:HHmmss}.tar.gz";
+
+      _logger.LogInformation($"Compressing {backupFilename}...");
 
       using (Stream stream = File.OpenWrite(backupFilename))
       using (var writer = WriterFactory.Open(stream, ArchiveType.Tar, new WriterOptions(CompressionType.GZip)))
       {
         writer.WriteAll(backupFolder, backupPattern, SearchOption.AllDirectories);
       }
+
+      return backupFilename;
     }
   }
 }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Quartz;
+using System.Collections.Generic;
 
 namespace PCloud.Backup
 {
@@ -41,15 +42,25 @@ namespace PCloud.Backup
             continue;
           }
 
-          var backupFilename = $"{_config.SenderName}.{Path.GetFileName(backupFolder)}.{DateTime.Now:yyyyMMddHHmmss}.tar.gz";
+          var backupFilenames = new List<string>();
 
-          _logger.LogInformation($"Compressing {backupFilename}...");
-          await _zip.ExecuteAsync(backupFilename, backupFolder, _config.BackupPattern, context.CancellationToken);
-          _logger.LogInformation($"Uploading {backupFilename}...");
-          await _api.UploadToLinkAsync(backupFilename);
-          File.Delete(backupFilename);
+          if (_config.BackupCompression)
+          {
+            var backupFilename = _zip.Execute(backupFolder, _config.BackupPattern);
+            backupFilenames.Append(backupFilename);
+          }
+          else
+          {
+            backupFilenames.AddRange(Directory.EnumerateFileSystemEntries(backupFolder, _config.BackupPattern, SearchOption.AllDirectories));
+          }
 
-          _logger.LogInformation($"Done {backupFilename}");
+          foreach (var backupFilename in backupFilenames)
+          {
+            _logger.LogInformation($"Uploading {backupFilename}...");
+            await _api.UploadToLinkAsync(backupFilename);
+            File.Delete(backupFilename);
+            _logger.LogInformation($"Done {backupFilename}");
+          }
         }
       }
       catch (Exception e)
