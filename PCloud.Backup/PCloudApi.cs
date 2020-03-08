@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using Flurl;
 using Flurl.Http;
+using System.Threading;
 
 namespace PCloud.Backup
 {
@@ -21,7 +22,7 @@ namespace PCloud.Backup
       _config = config;
     }
 
-    public async Task<PCloudResponse> UploadToLinkAsync(string fileName)
+    public async Task<PCloudResponse> UploadToLinkAsync(string fileName, CancellationToken cancellationToken = default(CancellationToken))
     {
       using (var file = File.OpenRead(fileName))
       {
@@ -38,7 +39,7 @@ namespace PCloud.Backup
         return await new Url($"https://api.pcloud.com/uploadtolink")
           .SetQueryParams(new { code = _config.PCloudCode, names = _config.SenderName })
           .WithTimeout(_config.UploadTimeout)
-          .PostAsync(content)
+          .PostAsync(content, cancellationToken)
           .ReceiveJson<PCloudResponse>();
       }
     }

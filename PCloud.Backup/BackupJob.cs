@@ -57,8 +57,14 @@ namespace PCloud.Backup
           foreach (var backupFilename in backupFilenames)
           {
             _logger.LogInformation($"Uploading {backupFilename}...");
-            await _api.UploadToLinkAsync(backupFilename);
-            File.Delete(backupFilename);
+            await _api.UploadToLinkAsync(backupFilename, context.CancellationToken);
+
+            if (_config.BackupCompression)
+            {
+              _logger.LogInformation($"Deleting {backupFilename}...");
+              File.Delete(backupFilename);
+            }
+
             _logger.LogInformation($"Done {backupFilename}");
           }
         }
