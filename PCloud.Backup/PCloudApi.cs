@@ -27,7 +27,7 @@ namespace PCloud.Backup
       {
         var content = new MultipartFormDataContent();
 
-        var fileContent = new StreamContent(file, _config.StreamContentBufferSize);
+        var fileContent = new StreamContent(file, _config.UploadBufferSize);
         fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
         {
           Name = "\"file\"",
@@ -37,7 +37,7 @@ namespace PCloud.Backup
 
         return await new Url($"https://api.pcloud.com/uploadtolink")
           .SetQueryParams(new { code = _config.PCloudCode, names = _config.SenderName })
-          .WithTimeout(TimeSpan.FromMinutes(10))
+          .WithTimeout(_config.UploadTimeout)
           .PostAsync(content)
           .ReceiveJson<PCloudResponse>();
       }

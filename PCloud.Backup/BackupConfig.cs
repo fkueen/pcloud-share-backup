@@ -1,4 +1,6 @@
-﻿namespace PCloud.Backup
+﻿using System;
+
+namespace PCloud.Backup
 {
   public class BackupConfig
   {
@@ -8,7 +10,8 @@
     public string SenderName { get; set; } = "docker";
     public string BackupCronExpression { get; set; } = "0 0 0 * * ?";
     public bool BackupCompression { get; set; } = true;
-    public int StreamContentBufferSize { get; set; } = 5242880;
+    public int UploadBufferSize { get; set; } = 5242880;
+    public TimeSpan UploadTimeout { get; set; } = TimeSpan.FromMinutes(10);
   }
 }
 
