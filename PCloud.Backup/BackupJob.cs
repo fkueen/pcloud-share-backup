@@ -47,7 +47,7 @@ namespace PCloud.Backup
           if (_config.BackupCompression)
           {
             var backupFilename = _zip.Execute(backupFolder, _config.BackupPattern);
-            backupFilenames.Append(backupFilename);
+            backupFilenames.Add(backupFilename);
           }
           else
           {
