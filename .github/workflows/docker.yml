@@ -1,7 +1,10 @@
 name: Deploy to Docker Hub
 on: push
 env:
-  IMAGE_NAME: kueen/pcloud:arm32v7
+  IMAGE_TAG_LATEST: kueen/pcloud:latest
+  DOCKERFILE_LATEST: amd64.Dockerfile
+  IMAGE_TAG_ARM: kueen/pcloud:arm32v7
+  DOCKERFILE_ARM: arm32v7.Dockerfile
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -11,8 +14,14 @@ jobs:
       - name: Log into registry
         run: echo "${{secrets.DOCKER_PASSWORD}}" | docker login -u ${{secrets.DOCKER_USERNAME}} --password-stdin
 
-      - name: Build image
-        run: docker build . --file Dockerfile --tag $IMAGE_NAME
+      - name: Build latest
+        run: docker build . --file $DOCKERFILE_LATEST --tag $IMAGE_TAG_LATEST
       
-      - name: Push image
-        run: docker push $IMAGE_NAME
+      - name: Push latest
+        run: docker push $IMAGE_TAG_LATEST
+
+      - name: Build arm
+        run: docker build . --file $DOCKERFILE_ARM --tag $IMAGE_TAG_ARM
+      
+      - name: Push arm
+        run: docker push $IMAGE_TAG_ARM
